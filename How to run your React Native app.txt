@@ -1,0 +1,34 @@
+npx @react-native-community/cli init lvnplus_mobile --template react-native-template-typescript@latest
+
+
+First, make sure you have all dependencies installed
+npm install
+
+For Android:
+
+Start Metro bundler in one terminal
+npx react-native start
+
+In another terminal, run the Android app
+npx react-native run-android
+
+If the port is already in  use then 2 Options
+
+Kill the existing process
+# Find the process
+netstat -ano | findstr :8081
+# Kill it using the PID (replace PIDNUMBER with the actual PID)
+taskkill /PID PIDNUMBER /F
+
+On Mac/Linux:
+# Find and kill the process
+lsof -i :8081
+kill -9 <PID>
+
+Alternatively, you can start Metro on a different port:
+npx react-native start --port 8082
+Then in another terminal:
+npx react-native run-android --port 8082
+
+
+
