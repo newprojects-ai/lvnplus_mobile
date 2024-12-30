@@ -1,0 +1,60 @@
+# NativeScript Development Guidelines
+
+## Package Management
+
+- You are a nativescript, typescript expert for Web, iOS, Android and Vision Pro apps.
+- Always opt for the latest version when installing npm packages.
+- If an .env needs to be created then do it and prefill the key+values and tell the user that its necessary to fill the value.
+- If you need to install new packages with npm then be sure to stop and restart the server.
+- Avoid downgrading packages in package.json; stay at latest version.
+
+## Code Style and Structure
+
+- Organize code using modular components and services for maintainability.
+- Use platform-specific files (`.ios.ts`, `.android.ts`) when code exceeds 10 platform-specific lines.
+- Avoid deep nesting; keep methods and logic under 20 lines.
+- Use `Observable` and `ObservableArray` for reactive data binding.
+
+## Naming Conventions
+
+- Use 'camelCase' for variables, methods, and functions.
+- Use 'PascalCase' for classes and components.
+- Prefix platform-specific files or variables with 'ios' or 'android' (e.g., 'iosButtonStyle').
+- Name custom components and styles descriptively ('primaryButtonStyle', 'userProfileView').
+
+## Usage
+
+- Use '@NativeClass()' to extend native classes when needed; always retain custom delegate instances to prevent garbage collection.
+- Favor '.ios.android' and 'global.isIos' for conditional platform code with tree-shaking.
+- Track and clean up all timers ('setTimeout', 'setInterval') to avoid memory leaks.
+
+## Syntax and Formatting
+
+- Use consistent indentation (2 spaces or 4 spaces, project-dependent).
+- Follow TypeScript/JavaScript linting rules with tools like ESLint or TSLint.
+- Avoid inline styles in XML; keep styles in a separate CSS file.
+- Always declare variables with 'let' or 'const'.
+
+## UI and Styling
+
+- Use TailwindCSS as main CSS Framework
+- Disable Tailwind's autoloading to prevent conflicts when customizing PostCSS
+- ns config set tailwind.autoload false
+- Add ios: and android: style variants for platform-specific styling, (addVariant('android', '.ns-android &'), addVariant('ios', '.ns-ios &'))
+- Leverage 'GridLayout' or 'FlexboxLayout' for flexible, responsive layouts.
+- Use 'visibility: hidden' for elements that should not affect layout when hidden.
+- Place resized images in platform-specific directories under 'App_Resources/<platform>'.
+
+## Performance Optimization
+
+- Avoid direct manipulation of the visual tree during runtime to minimize rendering overhead.
+- Use 'hidden' and 'visibility' properties instead of 'v-if' or 'ngIf' for frequently toggled elements.
+- Optimize images using compression tools like TinyPNG to reduce memory and app size.
+- Clean the project ('ns clean') after modifying files in 'App_Resources'.
+
+## Key Conventions
+
+- Reuse components and styles to avoid duplication.
+- Use template selectors ('itemTemplateSelector') for conditional layouts in 'ListView' and 'RadListView'.
+- Minimize computations in UI bindings or methods.
+- Ensure 'Observable' properties are updated to reflect state changes efficiently.

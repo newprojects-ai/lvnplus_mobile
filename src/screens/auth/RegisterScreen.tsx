@@ -20,7 +20,7 @@ import { AuthScreenNavigationProp } from '../../navigation/types';
 export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<AuthScreenNavigationProp>();
   const dispatch = useAppDispatch();
-  const {loading, error: authError} = useAppSelector(state => state.auth);
+  const {loading: authLoading, error: authError} = useAppSelector(state => state.auth);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -29,7 +29,7 @@ export const RegisterScreen: React.FC = () => {
     role: 'student',
   });
   const [errors, setErrors] = useState<Partial<RegisterData>>({});
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = (): boolean => {
     const newErrors: Partial<RegisterData> = {};
@@ -62,10 +62,13 @@ export const RegisterScreen: React.FC = () => {
     if (!validate()) return;
 
     try {
+      setIsSubmitting(true);
       await dispatch(register(formData)).unwrap();
     } catch (error) {
       const fieldErrors = getFieldErrors(error);
       setErrors(prev => ({...prev, ...fieldErrors}));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -113,7 +116,7 @@ export const RegisterScreen: React.FC = () => {
           <Button
             title="Register"
             onPress={handleRegister}
-            loading={loading}
+            loading={isSubmitting || authLoading}
             style={styles.button}
           />
           <Button

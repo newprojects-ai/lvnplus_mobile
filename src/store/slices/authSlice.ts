@@ -16,7 +16,7 @@ export const login = createAsyncThunk(
     try {
       return await authService.login(data);
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue(error instanceof Error ? error.message : 'Login failed');
     }
   },
 );
@@ -27,7 +27,7 @@ export const register = createAsyncThunk(
     try {
       return await authService.register(data);
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue(error instanceof Error ? error.message : 'Registration failed');
     }
   },
 );
@@ -63,7 +63,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload as string || 'An error occurred during login';
       });
 
     // Register
@@ -80,7 +80,7 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload as string || 'An error occurred during registration';
       });
 
     // Logout
@@ -105,6 +105,8 @@ const authSlice = createSlice({
         state.loading = false;
       })
       .addCase(checkAuth.rejected, state => {
+        state.user = null;
+        state.token = null;
         state.loading = false;
       });
   },

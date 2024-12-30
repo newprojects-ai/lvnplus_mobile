@@ -1,8 +1,7 @@
-export const API_BASE_URL = 'https://api.example.com'; // Replace with actual API URL
-
 import {ApiError, ApiErrorResponse} from '../types/api';
+import {API_BASE_URL} from '../config/env';
 
-async function handleResponse<T>(response: Response): Promise<T> {
+export async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const errorData: ApiErrorResponse = await response.json().catch(() => ({
       message: 'An unexpected error occurred',
@@ -12,19 +11,23 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-export const api = {
-  headers: {
+class ApiService {
+  private _headers: Record<string, string> = {
     'Content-Type': 'application/json',
-  },
+    'Accept': 'application/json',
+  };
 
-  setAuthToken(token: string | null) {
+  get headers(): Record<string, string> {
+    return this._headers;
+  }
+
+  setAuthToken(token: string | null): void {
     if (token) {
-      this.headers = {
-        ...this.headers,
-        Authorization: `Bearer ${token}`,
-      };
+      this._headers.Authorization = `Bearer ${token}`;
     } else {
-      delete this.headers.Authorization;
+      delete this._headers.Authorization;
     }
-  },
-};
+  }
+}
+
+export const api = new ApiService();

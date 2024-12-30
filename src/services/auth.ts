@@ -1,46 +1,72 @@
-import { api } from './api';
+import { api, handleResponse } from './api';
 import { storage } from './storage';
 import type { LoginData, RegisterData, AuthResponse } from '../types/auth';
+import { API_BASE_URL } from '../config/env';
 
 export const authService = {
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: api.headers,
-      body: JSON.stringify(data),
-    });
-    const authResponse = await handleResponse<AuthResponse>(response);
-    await this.handleAuthResponse(authResponse);
-    return authResponse;
+    try {
+      console.log('Registering with:', API_BASE_URL, data);
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: api.headers,
+        body: JSON.stringify(data),
+      });
+      console.log('Register response status:', response.status);
+      const authResponse = await handleResponse<AuthResponse>(response);
+      await this.handleAuthResponse(authResponse);
+      return authResponse;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error instanceof Error ? error : new Error('Registration failed');
+    }
   },
 
   async login(data: LoginData): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: api.headers,
-      body: JSON.stringify(data),
-    });
-    const authResponse = await handleResponse<AuthResponse>(response);
-    await this.handleAuthResponse(authResponse);
-    return authResponse;
+    try {
+      console.log('Logging in with:', API_BASE_URL, data);
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: api.headers,
+        body: JSON.stringify(data),
+      });
+      console.log('Login response status:', response.status);
+      const authResponse = await handleResponse<AuthResponse>(response);
+      await this.handleAuthResponse(authResponse);
+      return authResponse;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error instanceof Error ? error : new Error('Login failed');
+    }
   },
 
   async logout(): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-      method: 'POST',
-      headers: api.headers,
-    });
-    await handleResponse<void>(response);
-    await storage.clearAuth();
-    api.setAuthToken(null);
+    try {
+      console.log('Logging out');
+      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        headers: api.headers,
+      });
+      await handleResponse<void>(response);
+      await storage.clearAuth();
+      api.setAuthToken(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error instanceof Error ? error : new Error('Logout failed');
+    }
   },
 
   async handleAuthResponse(authResponse: AuthResponse): Promise<void> {
-    await Promise.all([
-      storage.setAuthToken(authResponse.token),
-      storage.setUserData(JSON.stringify(authResponse.user)),
-    ]);
-    api.setAuthToken(authResponse.token);
+    try {
+      await Promise.all([
+        storage.setAuthToken(authResponse.token),
+        storage.setUserData(JSON.stringify(authResponse.user)),
+      ]);
+      api.setAuthToken(authResponse.token);
+    } catch (error) {
+      console.error('Error handling auth response:', error);
+      throw error;
+    }
   },
 
   async checkAuth(): Promise<AuthResponse | null> {
@@ -51,14 +77,17 @@ export const authService = {
       ]);
 
       if (!token || !userData) {
+        console.log('No stored auth data found');
         return null;
       }
 
-      const user = JSON.parse(userData);
       api.setAuthToken(token);
-      return { token, user };
+      return {
+        token,
+        user: JSON.parse(userData),
+      };
     } catch (error) {
-      console.error('Error checking auth:', error);
+      console.error('Auth check failed:', error);
       return null;
     }
   },
