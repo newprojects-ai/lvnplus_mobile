@@ -7,6 +7,7 @@ export type AuthStackParamList = {
 
 export type MainStackParamList = {
   Home: undefined;
+  ConfigureTest: undefined;
 };
 
 export type AuthScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
