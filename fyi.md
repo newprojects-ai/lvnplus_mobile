@@ -137,6 +137,26 @@ Format:
 - Added error logging for all API operations
 - Added try/catch blocks around all async operations
 
+### [2024-12-30 18:25:57] Added Role Selector Component
+**What:** Added role selection functionality to login screen
+**Why:** Allow users to select their role during login instead of defaulting to 'student'
+**How:** 
+- Created new RoleSelector component with a segmented control UI
+- Added role validation in login form
+- Updated auth types to use proper Role type
+- Added role selection UI to login screen
+- Improved form layout and styling
+
+### [2024-12-30 18:28:40] Updated Role Options
+**What:** Updated role options in login screen to match requirements
+**Why:** Need to support Student, Parent, and Tutor roles only
+**How:** 
+- Updated Role type to only include 'student', 'parent', and 'tutor'
+- Changed RoleSelector UI label to "I am a" for better UX
+- Added proper labels for each role option
+- Set Student as the default role
+- Removed unused roles (teacher, admin) from the system
+
 **Resolution:**
 - Successfully fixed build by:
   1. Reducing JVM heap size to 512m

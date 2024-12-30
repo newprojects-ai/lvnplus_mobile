@@ -1,11 +1,27 @@
-export type Role = 'student' | 'teacher' | 'parent' | 'admin';
+import { Role } from '../components/ui/RoleSelector';
 
 export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  roles: Role[];
+  role: Role;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
+  role: Role;
+}
+
+export interface RegisterData extends LoginData {
+  firstName: string;
+  lastName: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
 }
 
 export interface AuthState {
@@ -13,24 +29,4 @@ export interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
-}
-
-export interface LoginData {
-  email: string;
-  password: string;
-  role: string;
-}
-
-export interface RegisterData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  parentId?: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
 }

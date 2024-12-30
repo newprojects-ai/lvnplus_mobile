@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {Input} from '../../components/ui/Input';
 import {Button} from '../../components/ui/Button';
+import {RoleSelector, Role} from '../../components/ui/RoleSelector';
 import {validateEmail, validateRequired} from '../../utils/validation';
 import type {LoginData} from '../../types/auth';
 import {useAppDispatch, useAppSelector} from '../../hooks';
@@ -24,7 +25,7 @@ export const LoginScreen: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'student',
+    role: 'student' as Role,
   });
   const [errors, setErrors] = useState<Partial<LoginData>>({});
 
@@ -39,6 +40,10 @@ export const LoginScreen: React.FC = () => {
 
     if (!validateRequired(formData.password)) {
       newErrors.password = 'Password is required';
+    }
+
+    if (!validateRequired(formData.role)) {
+      newErrors.role = 'Role is required';
     }
 
     setErrors(newErrors);
@@ -83,6 +88,11 @@ export const LoginScreen: React.FC = () => {
             onChangeText={text => setFormData({...formData, password: text})}
             error={errors.password}
           />
+          <RoleSelector
+            value={formData.role}
+            onChange={role => setFormData({...formData, role})}
+            error={errors.role}
+          />
           <Button
             title="Login"
             onPress={handleLogin}
@@ -109,22 +119,27 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    padding: 16,
   },
   form: {
-    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 24,
     textAlign: 'center',
-  },
-  error: {
-    color: '#ff3b30',
-    textAlign: 'center',
-    marginBottom: 16,
+    color: '#333',
   },
   button: {
     marginTop: 16,
+  },
+  error: {
+    color: '#ff3b30',
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: 'center',
   },
 });
