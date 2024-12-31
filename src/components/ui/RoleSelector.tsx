@@ -14,28 +14,28 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
   onChange,
   error,
 }) => {
-  const roles: Array<{id: Role; label: string}> = [
-    {id: 'student', label: 'Student'},
-    {id: 'parent', label: 'Parent'},
-    {id: 'tutor', label: 'Tutor'},
+  const roles: Array<{role: Role; label: string}> = [
+    {role: 'student', label: 'Student'},
+    {role: 'parent', label: 'Parent'},
+    {role: 'tutor', label: 'Tutor'},
   ];
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>I am a</Text>
       <View style={styles.buttonGroup}>
-        {roles.map(({id, label}) => (
+        {roles.map(({role, label}) => (
           <TouchableOpacity
-            key={id}
+            key={role}
             style={[
               styles.button,
-              value === id && styles.selectedButton,
+              value === role && styles.selectedButton,
             ]}
-            onPress={() => onChange(id)}>
+            onPress={() => onChange(role)}>
             <Text
               style={[
                 styles.buttonText,
-                value === id && styles.selectedButtonText,
+                value === role && styles.selectedButtonText,
               ]}>
               {label}
             </Text>
