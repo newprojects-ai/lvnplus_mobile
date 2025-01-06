@@ -15,9 +15,9 @@ import {Button} from '../../components/ui/Button';
 import {logout} from '../../store/slices/authSlice';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {MainStackParamList} from '../../navigation/types';
+import {MainStackParamList, MainTabParamList} from '../../navigation/types';
 
-type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
+type NavigationProp = NativeStackNavigationProp<MainStackParamList & MainTabParamList>;
 
 export const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -30,31 +30,19 @@ export const HomeScreen = () => {
   };
 
   const handleStartTest = () => {
-    navigation.navigate('ConfigureTest');
+    navigation.navigate('Tests', { screen: 'TestSelection' });
   };
 
   const handleProgress = () => {
-    // TODO: Implement progress screen navigation
-    Alert.alert(
-      'Coming Soon',
-      'Progress tracking will be available in the next update.',
-    );
+    navigation.navigate('Progress');
   };
 
   const handleGoals = () => {
-    // TODO: Implement goals screen navigation
-    Alert.alert(
-      'Coming Soon',
-      'Goal setting will be available in the next update.',
-    );
+    navigation.navigate('Goals');
   };
 
   const handleHelp = () => {
-    // TODO: Implement help screen navigation
-    Alert.alert(
-      'Need Help?',
-      'Please contact support at support@lvnplus.com for assistance.',
-    );
+    navigation.navigate('Help');
   };
 
   const onRefresh = React.useCallback(() => {

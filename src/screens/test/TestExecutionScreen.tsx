@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,19 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import type {RouteProp} from '@react-navigation/native';
 import {TestStackParamList} from '../../navigation/types';
-import {useAppDispatch, useAppSelector} from '../../hooks';
 import {Icon} from '@rneui/themed';
+import {TestTimer} from '../../utils/TestTimer';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 type NavigationProp = NativeStackNavigationProp<TestStackParamList, 'TestExecution'>;
+type ScreenRouteProp = RouteProp<TestStackParamList, 'TestExecution'>;
 
 type Question = {
   id: string;
@@ -22,46 +27,73 @@ type Question = {
   correctAnswer?: string;
 };
 
+// Mock questions - replace with actual API call
+const MOCK_QUESTIONS: Question[] = [
+  {
+    id: '1',
+    content: 'A bag contains 3 red, 4 blue, and 5 green marbles. Three marbles are drawn without replacement. What is P(all different colors)?',
+    options: ['60/220', '80/220', '20/220', '40/220'],
+  },
+  {
+    id: '2',
+    content: 'If a = 3 and b = 4, what is a² + b²?',
+    options: ['7', '25', '12', '9'],
+  },
+  // Add more mock questions as needed
+];
+
 export const TestExecutionScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const route = useRoute();
-  const dispatch = useAppDispatch();
+  const route = useRoute<ScreenRouteProp>();
+  const {testId, totalQuestions, timeLimit, selectedTopics} = route.params;
 
-  // Local state
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  // State
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [flaggedQuestions, setFlaggedQuestions] = useState<string[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(
+    timeLimit ? timeLimit * 60 : null,
+  );
   const [testStartTime] = useState(new Date());
+  const [questions] = useState<Question[]>(MOCK_QUESTIONS);
 
-  // Mock questions - replace with actual data from API
-  const [questions] = useState<Question[]>([
-    {
-      id: '1',
-      content: 'What is 2 + 2?',
-      options: ['3', '4', '5', '6'],
-    },
-    // Add more mock questions
-  ]);
-
-  // Timer effect
+  // Timer setup
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (timeRemaining !== null) {
-      timer = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev === null || prev <= 0) {
-            handleTestComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (timeLimit) {
+      const timer = new TestTimer(
+        timeLimit,
+        timeLeft => setTimeRemaining(timeLeft),
+        handleTestComplete,
+      );
+      timer.start();
+      return () => timer.stop();
     }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [timeRemaining]);
+  }, [timeLimit]);
+
+  // Animate question transitions
+  const animateQuestionTransition = (isNext: boolean) => {
+    const screenWidth = Dimensions.get('window').width;
+    
+    slideAnim.setValue(isNext ? 0 : -screenWidth);
+    fadeAnim.setValue(0);
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   const handleAnswerSelect = (questionId: string, answer: string) => {
     setAnswers(prev => ({...prev, [questionId]: answer}));
@@ -77,12 +109,14 @@ export const TestExecutionScreen = () => {
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
+      animateQuestionTransition(true);
       setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
   const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
+      animateQuestionTransition(false);
       setCurrentQuestionIndex(prev => prev - 1);
     }
   };
@@ -90,67 +124,100 @@ export const TestExecutionScreen = () => {
   const handleTestComplete = useCallback(async () => {
     try {
       const endTime = new Date();
-      const totalTime = Math.floor(
+      const timeTaken = Math.floor(
         (endTime.getTime() - testStartTime.getTime()) / 1000,
       );
-      
-      await dispatch(completeTestSession()).unwrap();
-      
-      navigation.replace('TestCompletion', {
-        testId: currentQuestion.id,
-        totalTime,
-      });
-    } catch (error) {
-      Alert.alert(
-        'Error',
-        'Failed to submit test. Please try again.',
-        [
+
+      // Calculate results
+      const totalAnswered = Object.keys(answers).length;
+      const score = 3; // Mock score - replace with actual calculation
+      const accuracy = 30.0; // Mock accuracy - replace with actual calculation
+
+      navigation.replace('TestResults', {
+        testId,
+        score,
+        accuracy,
+        timeSpent: Math.floor(timeTaken / 60), // Convert to minutes
+        topicPerformance: [
           {
-            text: 'Retry',
-            onPress: handleTestComplete,
+            topicId: '1',
+            correct: 3,
+            total: 10,
           },
         ],
-      );
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit test. Please try again.', [
+        {
+          text: 'Retry',
+          onPress: handleTestComplete,
+        },
+      ]);
     }
-  }, [navigation, testStartTime, dispatch, currentQuestion.id]);
+  }, [navigation, testId, testStartTime, answers]);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isFirstQuestion = currentQuestionIndex === 0;
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const isQuestionFlagged = flaggedQuestions.includes(currentQuestion.id);
+  const hasAnswer = answers[currentQuestion.id] !== undefined;
 
   return (
-    <View style={styles.container}>
-      {/* Timer Display */}
-      {timeRemaining !== null && (
-        <View style={styles.timerContainer}>
-          <Text style={styles.timerText}>
-            Time Remaining: {Math.floor(timeRemaining / 60)}:
-            {(timeRemaining % 60).toString().padStart(2, '0')}
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      {/* Timer and Progress */}
+      <View style={styles.header}>
+        {timeRemaining !== null && (
+          <View style={styles.timerContainer}>
+            <Icon
+              name="clock-outline"
+              type="material-community"
+              size={20}
+              color="#339af0"
+            />
+            <Text style={styles.timerText}>
+              {Math.floor(timeRemaining / 60)}:
+              {(timeRemaining % 60).toString().padStart(2, '0')}
+            </Text>
+          </View>
+        )}
+        <View style={styles.progressContainer}>
+          <Text style={styles.progressText}>
+            Question {currentQuestionIndex + 1} of {questions.length}
           </Text>
+          <View style={styles.progressBar}>
+            <View
+              style={[
+                styles.progressFill,
+                {width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`},
+              ]}
+            />
+          </View>
         </View>
-      )}
-
-      {/* Progress Indicator */}
-      <View style={styles.progressContainer}>
-        <Text style={styles.progressText}>
-          Question {currentQuestionIndex + 1} of {questions.length}
-        </Text>
-        <TouchableOpacity
-          onPress={() => handleFlagQuestion(currentQuestion.id)}
-          style={styles.flagButton}>
-          <Icon
-            name={isQuestionFlagged ? 'flag' : 'flag-outline'}
-            type="material-community"
-            color={isQuestionFlagged ? '#ff6b6b' : '#666'}
-            size={24}
-          />
-        </TouchableOpacity>
       </View>
 
       {/* Question Content */}
-      <ScrollView style={styles.questionContainer}>
-        <Text style={styles.questionText}>{currentQuestion.content}</Text>
+      <Animated.ScrollView
+        style={[
+          styles.questionContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{translateX: slideAnim}],
+          },
+        ]}>
+        <View style={styles.questionHeader}>
+          <Text style={styles.questionText}>{currentQuestion.content}</Text>
+          <TouchableOpacity
+            onPress={() => handleFlagQuestion(currentQuestion.id)}
+            style={styles.flagButton}>
+            <Icon
+              name={isQuestionFlagged ? 'flag' : 'flag-outline'}
+              type="material-community"
+              color={isQuestionFlagged ? '#ff6b6b' : '#868e96'}
+              size={24}
+            />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.optionsContainer}>
           {currentQuestion.options.map((option, index) => (
             <TouchableOpacity
@@ -172,34 +239,58 @@ export const TestExecutionScreen = () => {
             </TouchableOpacity>
           ))}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
-      {/* Navigation Buttons */}
-      <View style={styles.navigationContainer}>
-        <TouchableOpacity
-          style={[styles.navButton, isFirstQuestion && styles.navButtonDisabled]}
-          onPress={handlePreviousQuestion}
-          disabled={isFirstQuestion}>
-          <Text style={styles.navButtonText}>Previous</Text>
-        </TouchableOpacity>
-        {isLastQuestion ? (
+      {/* Navigation Footer */}
+      <View style={styles.footer}>
+        <View style={styles.navigationContainer}>
           <TouchableOpacity
-            style={[styles.navButton, styles.submitButton]}
-            onPress={handleTestComplete}>
-            <Text style={[styles.navButtonText, styles.submitButtonText]}>
-              Submit
+            style={[styles.navButton, isFirstQuestion && styles.navButtonDisabled]}
+            onPress={handlePreviousQuestion}
+            disabled={isFirstQuestion}>
+            <Icon
+              name="chevron-left"
+              type="material-community"
+              size={24}
+              color={isFirstQuestion ? '#adb5bd' : '#339af0'}
+            />
+            <Text
+              style={[
+                styles.navButtonText,
+                isFirstQuestion && styles.navButtonTextDisabled,
+              ]}>
+              Previous
             </Text>
           </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={handleNextQuestion}
-            disabled={isLastQuestion}>
-            <Text style={styles.navButtonText}>Next</Text>
-          </TouchableOpacity>
-        )}
+
+          {isLastQuestion ? (
+            <TouchableOpacity
+              style={[styles.navButton, styles.submitButton]}
+              onPress={handleTestComplete}>
+              <Text style={styles.submitButtonText}>Submit Test</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.navButton, hasAnswer && styles.navButtonEnabled]}
+              onPress={handleNextQuestion}>
+              <Text
+                style={[
+                  styles.navButtonText,
+                  hasAnswer && styles.navButtonTextEnabled,
+                ]}>
+                Next
+              </Text>
+              <Icon
+                name="chevron-right"
+                type="material-community"
+                size={24}
+                color={hasAnswer ? '#339af0' : '#adb5bd'}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -208,41 +299,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  timerContainer: {
-    padding: 12,
-    backgroundColor: '#f8f9fa',
+  header: {
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#dee2e6',
+    borderBottomColor: '#e9ecef',
+  },
+  timerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
   },
   timerText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#495057',
-    textAlign: 'center',
+    color: '#339af0',
   },
   progressContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#dee2e6',
+    gap: 8,
   },
   progressText: {
     fontSize: 14,
-    color: '#6c757d',
+    color: '#868e96',
   },
-  flagButton: {
-    padding: 8,
+  progressBar: {
+    height: 4,
+    backgroundColor: '#e9ecef',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#339af0',
   },
   questionContainer: {
     flex: 1,
     padding: 16,
   },
+  questionHeader: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 24,
+  },
   questionText: {
+    flex: 1,
     fontSize: 18,
     color: '#212529',
-    marginBottom: 24,
+    lineHeight: 28,
+  },
+  flagButton: {
+    padding: 8,
   },
   optionsContainer: {
     gap: 12,
@@ -251,46 +357,65 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: '#e9ecef',
     backgroundColor: '#fff',
   },
   optionButtonSelected: {
-    backgroundColor: '#e7f5ff',
     borderColor: '#339af0',
+    backgroundColor: '#e7f5ff',
   },
   optionText: {
     fontSize: 16,
     color: '#495057',
   },
   optionTextSelected: {
-    color: '#1971c2',
-    fontWeight: '500',
+    color: '#339af0',
+    fontWeight: '600',
+  },
+  footer: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+    backgroundColor: '#fff',
   },
   navigationContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#dee2e6',
   },
   navButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  navButtonEnabled: {
+    backgroundColor: '#e7f5ff',
     borderRadius: 8,
-    backgroundColor: '#e9ecef',
   },
   navButtonDisabled: {
     opacity: 0.5,
   },
   navButtonText: {
     fontSize: 16,
-    color: '#495057',
-    fontWeight: '500',
+    color: '#868e96',
+  },
+  navButtonTextEnabled: {
+    color: '#339af0',
+    fontWeight: '600',
+  },
+  navButtonTextDisabled: {
+    color: '#adb5bd',
   },
   submitButton: {
-    backgroundColor: '#37b24d',
+    backgroundColor: '#339af0',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
   },
   submitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#fff',
   },
 });

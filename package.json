@@ -22,11 +22,13 @@
     "react": "18.1.0",
     "react-native": "0.70.10",
     "react-native-encrypted-storage": "^4.0.3",
+    "react-native-linear-gradient": "^2.8.3",
+    "react-native-reanimated": "^2.14.4",
     "react-native-safe-area-context": "^4.8.2",
     "react-native-screens": "3.20.0",
     "react-native-svg": "^13.14.0",
-    "react-native-svg-charts": "^5.4.0",
-    "react-redux": "^9.0.4"
+    "react-redux": "^9.0.4",
+    "victory-native": "^40.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

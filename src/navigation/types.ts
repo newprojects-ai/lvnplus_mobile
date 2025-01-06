@@ -1,14 +1,60 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { TestType } from '../types/test';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 
-export type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
+export type SubjectType = 'MATHS' | 'SCIENCE' | 'ENGLISH';
+
+export type TestStackParamList = {
+  SubjectSelection: undefined;
+  TestTypeSelection: {
+    subject: SubjectType;
+  };
+  TopicSelection: {
+    subject: SubjectType;
+    testType: TestType;
+  };
+  TestConfiguration: {
+    subject: SubjectType;
+    testType: TestType;
+    selectedTopics: string[];
+  };
+  TestReview: {
+    subject: SubjectType;
+    testType: TestType;
+    selectedTopics: string[];
+    numberOfQuestions: number;
+    isTimed: boolean;
+  };
+  TestExecution: {
+    testId: string;
+    totalQuestions: number;
+    timeLimit?: number;
+    selectedTopics: string[];
+  };
+  TestResults: {
+    testId: string;
+    score: number;
+    accuracy: number;
+    timeSpent: number;
+    topicPerformance: {
+      topicId: string;
+      correct: number;
+      total: number;
+    }[];
+  };
 };
 
 export type MainStackParamList = {
+  HomeTab: undefined;
+  Progress: undefined;
+  Goals: undefined;
+  Help: undefined;
+};
+
+export type MainTabParamList = {
   Home: undefined;
-  ConfigureTest: undefined;
+  Tests: NavigatorScreenParams<TestStackParamList>;
+  Profile: undefined;
 };
 
 export type RootStackParamList = {
@@ -16,34 +62,9 @@ export type RootStackParamList = {
   Login: undefined;
 };
 
-export type MainTabParamList = {
-  Home: undefined;
-  Tests: undefined;
-  Profile: undefined;
-};
-
-export type TestStackParamList = {
-  TestSelection: undefined;
-  ConfigureTest: {
-    testType: TestType;
-  };
-  TestExecution: {
-    testId: string;
-    totalQuestions: number;
-    timeLimit?: number;
-  };
-  TestCompletion: {
-    testId: string;
-    score: number;
-    timeTaken: number;
-  };
-  TestResults: {
-    testId: string;
-  };
-  PracticeSimilar: {
-    testId: string;
-    topicIds: string[];
-  };
-};
-
 export type AuthScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
+
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};

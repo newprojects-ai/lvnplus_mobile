@@ -1,18 +1,20 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {TestSelectionScreen} from '../screens/test/TestSelectionScreen';
-import {ConfigureTestScreen} from '../screens/test/ConfigureTestScreen';
-import {TestExecutionScreen} from '../screens/test/TestExecutionScreen';
-import {TestCompletionScreen} from '../screens/test/TestCompletionScreen';
-import {TestResultsScreen} from '../screens/test/TestResultsScreen';
 import {TestStackParamList} from './types';
+import {SubjectSelectionScreen} from '../screens/test/SubjectSelectionScreen';
+import {TestTypeSelectionScreen} from '../screens/test/TestTypeSelectionScreen';
+import {TopicSelectionScreen} from '../screens/test/TopicSelectionScreen';
+import {TestConfigurationScreen} from '../screens/test/TestConfigurationScreen';
+import {TestReviewScreen} from '../screens/test/TestReviewScreen';
+import {TestExecutionScreen} from '../screens/test/TestExecutionScreen';
+import {TestResultsScreen} from '../screens/test/TestResultsScreen';
 
 const Stack = createNativeStackNavigator<TestStackParamList>();
 
 export const TestNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="TestSelection"
+      initialRouteName="SubjectSelection"
       screenOptions={{
         headerShown: true,
         headerBackTitle: '',
@@ -22,17 +24,40 @@ export const TestNavigator = () => {
         headerShadowVisible: false,
       }}>
       <Stack.Screen
-        name="TestSelection"
-        component={TestSelectionScreen}
+        name="SubjectSelection"
+        component={SubjectSelectionScreen}
         options={{
-          title: 'Tests',
+          title: 'Practice Tests',
           headerLargeTitle: true,
         }}
       />
       <Stack.Screen
-        name="ConfigureTest"
-        component={ConfigureTestScreen}
-        options={{title: 'Configure Test'}}
+        name="TestTypeSelection"
+        component={TestTypeSelectionScreen}
+        options={{
+          title: 'Select Test Type',
+        }}
+      />
+      <Stack.Screen
+        name="TopicSelection"
+        component={TopicSelectionScreen}
+        options={{
+          title: 'Select Topics',
+        }}
+      />
+      <Stack.Screen
+        name="TestConfiguration"
+        component={TestConfigurationScreen}
+        options={{
+          title: 'Configure Test',
+        }}
+      />
+      <Stack.Screen
+        name="TestReview"
+        component={TestReviewScreen}
+        options={{
+          title: 'Review Settings',
+        }}
       />
       <Stack.Screen
         name="TestExecution"
@@ -44,19 +69,11 @@ export const TestNavigator = () => {
         }}
       />
       <Stack.Screen
-        name="TestCompletion"
-        component={TestCompletionScreen}
-        options={{
-          title: 'Test Complete',
-          headerLeft: () => null,
-          gestureEnabled: false,
-        }}
-      />
-      <Stack.Screen
         name="TestResults"
         component={TestResultsScreen}
         options={{
           title: 'Test Results',
+          headerLeft: () => null,
           gestureEnabled: false,
         }}
       />
