@@ -1,14 +1,16 @@
 import React from 'react';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {Icon} from '@rneui/themed';
 import {HomeScreen} from '../screens/home/HomeScreen';
 import {ProfileScreen} from '../screens/profile/ProfileScreen';
 import {TestNavigator} from './TestNavigator';
-import {MainTabParamList} from './types';
+import {useAppSelector} from '../hooks';
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
 
-export const MainNavigator = () => {
+const MainTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -51,5 +53,23 @@ export const MainNavigator = () => {
         }}
       />
     </Tab.Navigator>
+  );
+};
+
+export const AppNavigator = () => {
+  const {user} = useAppSelector(state => state.auth);
+
+  return (
+    <Stack.Navigator>
+      {user ? (
+        <Stack.Screen
+          name="MainTabs"
+          component={MainTabs}
+          options={{headerShown: false}}
+        />
+      ) : (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      )}
+    </Stack.Navigator>
   );
 };

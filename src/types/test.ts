@@ -38,3 +38,51 @@ export interface TestConfigStep {
 
 export const TIME_LIMITS = [5, 10, 15, 30, 45, 60] as const;
 export type TimeLimit = typeof TIME_LIMITS[number];
+
+export type Question = {
+  id: string;
+  content: string;
+  options: string[];
+  correctAnswer?: string;
+  explanation?: string;
+};
+
+export type TopicPerformance = {
+  topicId: string;
+  name: string;
+  correct: number;
+  total: number;
+  questions: string[]; // Question IDs
+};
+
+export type QuestionTiming = {
+  questionId: string;
+  timeSpent: number; // in seconds
+};
+
+export type TestStatistics = {
+  totalQuestions: number;
+  questionsAttempted: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  skippedQuestions: number;
+  accuracy: number;
+  timeTaken: number;
+  topicPerformance: TopicPerformance[];
+  questionTiming: QuestionTiming[];
+  quickestAnswer: number;
+  slowestAnswer: number;
+  averageTime: number;
+};
+
+export type TestSession = {
+  id: string;
+  questions: Question[];
+  answers: Record<string, string>;
+  flaggedQuestions: string[];
+  startTime: string;
+  endTime?: string;
+  timeLimit?: number;
+  status: 'in_progress' | 'completed' | 'expired';
+  statistics?: TestStatistics;
+};

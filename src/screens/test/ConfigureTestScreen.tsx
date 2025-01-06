@@ -10,7 +10,9 @@ import {ReviewStep} from '../../components/test/ReviewStep';
 import {Button} from '../../components/ui/Button';
 import type {TestType, TimingType, TimeLimit, TestConfigStep, TestPlan} from '../../types/test';
 import {useAppDispatch, useAppSelector} from '../../hooks';
-import {fetchTopics, createTestPlan} from '../../store/slices/testSlice';
+import {fetchTopics, createTestPlan, startTestSession} from '../../store/slices/testSlice';
+import {Alert} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
 const STEPS: TestConfigStep[] = [
   {key: 'type', title: 'Test Type', completed: false},
@@ -34,6 +36,7 @@ export const ConfigureTestScreen = () => {
     selectedSubtopics: [] as string[],
     questionCount: 20,
   });
+  const navigation = useNavigation();
 
   React.useEffect(() => {
     dispatch(fetchTopics());
@@ -42,6 +45,7 @@ export const ConfigureTestScreen = () => {
   const markStepComplete = (stepIndex: number) => {
     setSteps(prev =>
       prev.map((step, index) => ({
+
         ...step,
         completed: index <= stepIndex,
       })),
@@ -58,26 +62,28 @@ export const ConfigureTestScreen = () => {
   };
 
   const handleCreate = async () => {
-    if (!user) return;
-
-    const plan: Partial<TestPlan> = {
-      testType: config.testType,
-      timingType: config.timingType,
-      timeLimit: config.timeLimit,
-      studentId: parseInt(user.id),
-      plannedBy: parseInt(user.id),
-      configuration: {
+    try {
+      const plan = {
+        boardId: 1, // TODO: Get from context/state
+        testType: config.testType,
+        timingType: config.timingType,
+        timeLimit: config.timingType === 'TIMED' ? config.timeLimit : undefined,
+        studentId: user?.id || 0,
+        plannedBy: user?.id || 0,
         topics: config.selectedTopics.map(Number),
         subtopics: config.selectedSubtopics.map(Number),
         totalQuestionCount: config.questionCount,
-      },
-    };
+      };
 
-    try {
-      await dispatch(createTestPlan(plan)).unwrap();
-      // Navigate back or show success message
+      const session = await dispatch(startTestSession(plan)).unwrap();
+      
+      navigation.replace('TestExecution', {
+        testId: session.id,
+        totalQuestions: config.questionCount,
+        timeLimit: config.timingType === 'TIMED' ? config.timeLimit : undefined,
+      });
     } catch (error) {
-      // Handle error
+      Alert.alert('Error', 'Failed to create test. Please try again.');
     }
   };
 
@@ -107,12 +113,14 @@ export const ConfigureTestScreen = () => {
             selectedSubtopics={config.selectedSubtopics}
             onTopicSelect={topicId =>
               setConfig(prev => ({
+
                 ...prev,
                 selectedTopics: [...prev.selectedTopics, topicId],
               }))
             }
             onSubtopicSelect={subtopicId =>
               setConfig(prev => ({
+
                 ...prev,
                 selectedSubtopics: [...prev.selectedSubtopics, subtopicId],
               }))
