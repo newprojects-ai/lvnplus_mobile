@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -78,8 +78,20 @@ export const SubjectSelectionScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const {width} = useWindowDimensions();
   const {loading} = useAppSelector(state => state.test);
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const cardScale = useSharedValue(1);
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+
+  // Create individual animated styles for each subject
+  const subjectAnimatedStyles = SUBJECTS.map(subject => {
+    return useAnimatedStyle(() => ({
+      transform: [
+        {
+          scale: selectedSubject === subject.id ? cardScale.value : 1,
+        },
+      ],
+      opacity: withTiming(selectedSubject === null || selectedSubject === subject.id ? 1 : 0.6),
+    }));
+  });
 
   const handleSubjectSelect = (subject: Subject) => {
     setSelectedSubject(subject.id);
@@ -96,15 +108,6 @@ export const SubjectSelectionScreen = () => {
       setSelectedSubject(null);
     }, 200);
   };
-
-  const getCardAnimatedStyle = (subjectId: string) => useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: selectedSubject === subjectId ? cardScale.value : 1,
-      },
-    ],
-    opacity: withTiming(selectedSubject === null || selectedSubject === subjectId ? 1 : 0.6),
-  }));
 
   if (loading) {
     return (
@@ -146,10 +149,10 @@ export const SubjectSelectionScreen = () => {
           {paddingHorizontal: width > 500 ? 32 : 16},
         ]}
         showsVerticalScrollIndicator={false}>
-        {SUBJECTS.map(subject => (
+        {SUBJECTS.map((subject, index) => (
           <AnimatedTouchable
             key={subject.id}
-            style={[styles.subjectCard, getCardAnimatedStyle(subject.id)]}
+            style={[styles.subjectCard, subjectAnimatedStyles[index]]}
             activeOpacity={0.95}
             onPress={() => handleSubjectSelect(subject)}>
             <LinearGradient
