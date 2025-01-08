@@ -5,21 +5,24 @@ import {
   Text,
   View,
   TextInputProps,
+  ViewStyle,
 } from 'react-native';
 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
+  containerStyle?: ViewStyle;
 }
 
 export const Input: React.FC<InputProps> = ({
   label,
   error,
   style,
+  containerStyle,
   ...props
 }) => {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
         style={[
@@ -27,7 +30,7 @@ export const Input: React.FC<InputProps> = ({
           error && styles.inputError,
           style,
         ]}
-        placeholderTextColor="#666"
+        placeholderTextColor="#9CA3AF"
         {...props}
       />
       {error && <Text style={styles.error}>{error}</Text>}
@@ -37,26 +40,30 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    width: '100%',
   },
   label: {
     marginBottom: 8,
     fontSize: 14,
-    color: '#333',
+    fontWeight: '600',
+    color: '#4B5563',
   },
   input: {
-    backgroundColor: '#f5f5f5',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#E5E7EB',
     fontSize: 16,
+    color: '#1F2937',
   },
   inputError: {
-    borderColor: '#ff3b30',
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
   },
   error: {
-    color: '#ff3b30',
+    color: '#EF4444',
     fontSize: 12,
     marginTop: 4,
   },

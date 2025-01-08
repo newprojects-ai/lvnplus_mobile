@@ -1,221 +1,114 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import type {RouteProp} from '@react-navigation/native';
-import {TestStackParamList} from '../../navigation/types';
-import {Icon} from '@rneui/themed';
-
-type NavigationProp = NativeStackNavigationProp<TestStackParamList, 'TestReview'>;
-type ScreenRouteProp = RouteProp<TestStackParamList, 'TestReview'>;
-
-// Mock data - replace with API call
-const MOCK_TOPICS = {
-  '1.1': 'Natural Numbers',
-  '1.2': 'Whole Numbers',
-  '1.3': 'Integers',
-  '2.1': 'Linear Equations',
-  '2.2': 'Quadratic Equations',
-  '2.3': 'Polynomials',
-};
+import { Icon } from '@rneui/themed';
+import { useNavigation } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 
 export const TestReviewScreen = () => {
-  const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<ScreenRouteProp>();
-  const {
-    subject,
-    testType,
-    selectedTopics,
-    numberOfQuestions,
-    isTimed,
-    timeLimit,
-  } = route.params;
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Format time for display
-  const formatTime = (minutes?: number) => {
-    if (!minutes) return 'No time limit';
-    if (minutes >= 60) {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      return `${hours}h ${mins}m`;
-    }
-    return `${minutes}m`;
+  const navigation = useNavigation();
+  
+  // Mock data - replace with actual test data
+  const summary = {
+    correct: 3,
+    incorrect: 7,
   };
 
-  const handleStartTest = async () => {
-    setIsLoading(true);
-    try {
-      // Mock API call - replace with actual test creation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      navigation.navigate('TestExecution', {
-        testId: 'test-123', // Replace with actual test ID from API
-        totalQuestions: numberOfQuestions,
-        timeLimit: isTimed ? timeLimit : undefined,
-        selectedTopics,
-      });
-    } catch (error) {
-      // Handle error
-      console.error('Failed to create test:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const questions = [
+    {
+      id: 1,
+      title: 'Question 1',
+      topic: 'Probability - Drawing Marbles',
+      userAnswer: '60/220',
+      correctAnswer: '120/220',
+      isCorrect: false,
+    },
+    {
+      id: 2,
+      title: 'Question 2',
+      topic: 'Bar Charts - Data Analysis',
+      userAnswer: 'Correct',
+      correctAnswer: 'Correct',
+      isCorrect: true,
+    },
+  ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView style={styles.scrollView}>
-        <Text style={styles.subtitle}>Review your test settings</Text>
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#6366F1', '#4338CA']}
+        style={styles.headerGradient}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" type="material" color="white" size={24} />
+          <Text style={styles.backText}>Results</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Question Review</Text>
+      </LinearGradient>
 
-        {/* Test Configuration Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Test Configuration</Text>
-          <View style={styles.card}>
-            <View style={styles.row}>
-              <View style={styles.iconContainer}>
-                <Icon
-                  name="format-list-numbered"
-                  type="material-community"
-                  size={24}
-                  color="#339af0"
-                />
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.label}>Questions</Text>
-                <Text style={styles.value}>{numberOfQuestions} questions</Text>
-              </View>
-            </View>
-
-            <View style={styles.row}>
-              <View style={styles.iconContainer}>
-                <Icon
-                  name="clock-outline"
-                  type="material-community"
-                  size={24}
-                  color="#339af0"
-                />
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.label}>Time Limit</Text>
-                <Text style={styles.value}>
-                  {isTimed ? formatTime(timeLimit) : 'Untimed'}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.row}>
-              <View style={styles.iconContainer}>
-                <Icon
-                  name="book-open-variant"
-                  type="material-community"
-                  size={24}
-                  color="#339af0"
-                />
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.label}>Test Type</Text>
-                <Text style={styles.value}>
-                  {testType === 'TOPIC'
-                    ? 'Topic Wise'
-                    : testType === 'MIXED'
-                    ? 'Mixed'
-                    : 'Mental Arithmetic'}
-                </Text>
-              </View>
-            </View>
+      <View style={styles.summaryContainer}>
+        <View style={styles.summaryItem}>
+          <View style={[styles.summaryBox, styles.correctBox]}>
+            <Text style={styles.summaryNumber}>{summary.correct}</Text>
           </View>
+          <Text style={styles.summaryLabel}>Correct</Text>
         </View>
+        <View style={styles.summaryItem}>
+          <View style={[styles.summaryBox, styles.incorrectBox]}>
+            <Text style={styles.summaryNumber}>{summary.incorrect}</Text>
+          </View>
+          <Text style={styles.summaryLabel}>Incorrect</Text>
+        </View>
+      </View>
 
-        {/* Selected Topics */}
-        {testType === 'TOPIC' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Selected Topics</Text>
-            <View style={styles.card}>
-              {selectedTopics.map(topicId => (
-                <View key={topicId} style={styles.topicRow}>
-                  <Icon
-                    name="check-circle"
-                    type="material-community"
-                    size={20}
-                    color="#40c057"
-                  />
-                  <Text style={styles.topicName}>
-                    {MOCK_TOPICS[topicId as keyof typeof MOCK_TOPICS]}
+      <ScrollView style={styles.content}>
+        {questions.map((question) => (
+          <View
+            key={question.id}
+            style={[
+              styles.questionCard,
+              question.isCorrect ? styles.correctCard : styles.incorrectCard,
+            ]}>
+            <View style={styles.questionHeader}>
+              <Text style={styles.questionTitle}>{question.title}</Text>
+              <Icon
+                name={question.isCorrect ? 'check-circle' : 'close-circle'}
+                type="material-community"
+                color={question.isCorrect ? '#059669' : '#DC2626'}
+                size={24}
+              />
+            </View>
+            <Text style={styles.topicText}>{question.topic}</Text>
+            <View style={styles.answerContainer}>
+              <View style={styles.answerRow}>
+                <Text style={styles.answerLabel}>Your Answer:</Text>
+                <Text
+                  style={[
+                    styles.answerText,
+                    question.isCorrect ? styles.correctAnswer : styles.incorrectAnswer,
+                  ]}>
+                  {question.userAnswer}
+                </Text>
+              </View>
+              {!question.isCorrect && (
+                <View style={styles.answerRow}>
+                  <Text style={styles.answerLabel}>Correct Answer:</Text>
+                  <Text style={[styles.answerText, styles.correctAnswer]}>
+                    {question.correctAnswer}
                   </Text>
                 </View>
-              ))}
+              )}
             </View>
           </View>
-        )}
-
-        {/* Instructions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Instructions</Text>
-          <View style={styles.card}>
-            <View style={styles.instructionRow}>
-              <Icon
-                name="information"
-                type="material-community"
-                size={20}
-                color="#339af0"
-              />
-              <Text style={styles.instruction}>
-                You can flag questions to review them later
-              </Text>
-            </View>
-            {isTimed && (
-              <View style={styles.instructionRow}>
-                <Icon
-                  name="timer-outline"
-                  type="material-community"
-                  size={20}
-                  color="#339af0"
-                />
-                <Text style={styles.instruction}>
-                  The test will auto-submit when time expires
-                </Text>
-              </View>
-            )}
-            <View style={styles.instructionRow}>
-              <Icon
-                name="gesture-tap"
-                type="material-community"
-                size={20}
-                color="#339af0"
-              />
-              <Text style={styles.instruction}>
-                Tap an option to select your answer
-              </Text>
-            </View>
-          </View>
-        </View>
+        ))}
       </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.startButton}
-          onPress={handleStartTest}
-          disabled={isLoading}>
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Text style={styles.startButtonText}>Start Test</Text>
-              <Icon name="play" type="material-community" color="#fff" />
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -223,102 +116,117 @@ export const TestReviewScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6',
   },
-  scrollView: {
-    flex: 1,
+  headerGradient: {
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
   },
-  subtitle: {
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backText: {
+    color: 'white',
+    marginLeft: 8,
     fontSize: 16,
-    color: '#868e96',
-    marginVertical: 16,
-    marginHorizontal: 16,
-    textAlign: 'center',
   },
-  section: {
+  headerTitle: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 12,
+  },
+  summaryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     padding: 16,
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: '#E5E7EB',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#212529',
-    marginBottom: 16,
+  summaryItem: {
+    alignItems: 'center',
   },
-  card: {
-    backgroundColor: '#f8f9fa',
+  summaryBox: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  correctBox: {
+    backgroundColor: '#D1FAE5',
+  },
+  incorrectBox: {
+    backgroundColor: '#FEE2E2',
+  },
+  summaryNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  questionCard: {
+    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 4,
   },
-  row: {
+  correctCard: {
+    borderLeftColor: '#059669',
+  },
+  incorrectCard: {
+    borderLeftColor: '#DC2626',
+  },
+  questionHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
+  },
+  questionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  topicText: {
+    fontSize: 14,
+    color: '#6B7280',
     marginBottom: 16,
-    gap: 12,
   },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#e7f5ff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rowContent: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    color: '#868e96',
-    marginBottom: 2,
-  },
-  value: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#212529',
-  },
-  topicRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  topicName: {
-    fontSize: 16,
-    color: '#495057',
-  },
-  instructionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  instruction: {
-    flex: 1,
-    fontSize: 14,
-    color: '#495057',
-    lineHeight: 20,
-  },
-  footer: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
-    backgroundColor: '#fff',
-  },
-  startButton: {
-    backgroundColor: '#339af0',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  answerContainer: {
     gap: 8,
   },
-  startButtonText: {
-    color: '#fff',
+  answerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  answerLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  answerText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
+  },
+  correctAnswer: {
+    color: '#059669',
+  },
+  incorrectAnswer: {
+    color: '#DC2626',
   },
 });
+
+export default TestReviewScreen;

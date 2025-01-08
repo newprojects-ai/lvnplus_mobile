@@ -5,6 +5,7 @@ import {SubjectSelectionScreen} from '../screens/test/SubjectSelectionScreen';
 import {TestTypeSelectionScreen} from '../screens/test/TestTypeSelectionScreen';
 import {TopicSelectionScreen} from '../screens/test/TopicSelectionScreen';
 import {TestConfigurationScreen} from '../screens/test/TestConfigurationScreen';
+import {TestQuestionScreen} from '../screens/test/TestQuestionScreen';
 import {TestReviewScreen} from '../screens/test/TestReviewScreen';
 import {TestExecutionScreen} from '../screens/test/TestExecutionScreen';
 import {TestResultsScreen} from '../screens/test/TestResultsScreen';
@@ -53,6 +54,15 @@ export const TestNavigator = () => {
         }}
       />
       <Stack.Screen
+        name="TestQuestionScreen"
+        component={TestQuestionScreen}
+        options={{
+          title: 'Test',
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
         name="TestReview"
         component={TestReviewScreen}
         options={{
@@ -64,8 +74,8 @@ export const TestNavigator = () => {
         component={TestExecutionScreen}
         options={{
           title: 'Test in Progress',
-          headerLeft: () => null, // Prevent going back during test
-          gestureEnabled: false, // Disable swipe back
+          headerLeft: () => null,
+          gestureEnabled: false,
         }}
       />
       <Stack.Screen

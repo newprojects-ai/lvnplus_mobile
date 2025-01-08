@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Alert,
+  Dimensions,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Icon} from '@rneui/themed';
@@ -16,6 +16,7 @@ import {logout} from '../../store/slices/authSlice';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {MainStackParamList, MainTabParamList} from '../../navigation/types';
+import LinearGradient from 'react-native-linear-gradient';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList & MainTabParamList>;
 
@@ -53,125 +54,141 @@ export const HomeScreen = () => {
     }, 1000);
   }, []);
 
+  const quickActions = [
+    {
+      title: 'Start Test',
+      subtitle: 'Practice or take a test',
+      icon: 'book-open-variant',
+      gradient: ['#6366F1', '#4F46E5'],
+      onPress: handleStartTest,
+    },
+    {
+      title: 'Progress',
+      subtitle: 'View your progress',
+      icon: 'chart-line',
+      gradient: ['#10B981', '#059669'],
+      onPress: handleProgress,
+    },
+    {
+      title: 'Goals',
+      subtitle: 'Set learning goals',
+      icon: 'flag-variant',
+      gradient: ['#F59E0B', '#D97706'],
+      onPress: handleGoals,
+    },
+    {
+      title: 'Help',
+      subtitle: 'Get support',
+      icon: 'help-circle',
+      gradient: ['#EC4899', '#DB2777'],
+      onPress: handleHelp,
+    },
+  ];
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.userName}>{user?.name || 'Student'}</Text>
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionsGrid}>
-            <TouchableOpacity style={styles.actionCard} onPress={handleStartTest}>
-              <View style={[styles.iconContainer, {backgroundColor: '#339af0'}]}>
-                <Icon
-                  name="book-open-variant"
-                  type="material-community"
-                  color="#fff"
-                  size={24}
-                />
-              </View>
-              <Text style={styles.actionTitle}>Start Test</Text>
-              <Text style={styles.actionSubtitle}>Practice or take a test</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionCard} onPress={handleProgress}>
-              <View style={[styles.iconContainer, {backgroundColor: '#37b24d'}]}>
-                <Icon
-                  name="chart-line"
-                  type="material-community"
-                  color="#fff"
-                  size={24}
-                />
-              </View>
-              <Text style={styles.actionTitle}>Progress</Text>
-              <Text style={styles.actionSubtitle}>View your progress</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionCard} onPress={handleGoals}>
-              <View style={[styles.iconContainer, {backgroundColor: '#f59f00'}]}>
-                <Icon
-                  name="flag-variant"
-                  type="material-community"
-                  color="#fff"
-                  size={24}
-                />
-              </View>
-              <Text style={styles.actionTitle}>Goals</Text>
-              <Text style={styles.actionSubtitle}>Set learning goals</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionCard} onPress={handleHelp}>
-              <View style={[styles.iconContainer, {backgroundColor: '#e64980'}]}>
-                <Icon
-                  name="help-circle"
-                  type="material-community"
-                  color="#fff"
-                  size={24}
-                />
-              </View>
-              <Text style={styles.actionTitle}>Help</Text>
-              <Text style={styles.actionSubtitle}>Get support</Text>
-            </TouchableOpacity>
+    <LinearGradient
+      colors={['#6366F1', '#4338CA']}
+      style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              tintColor="#fff"
+            />
+          }>
+          {/* Welcome Section */}
+          <View style={styles.welcomeSection}>
+            <Text style={styles.welcomeText}>Welcome back,</Text>
+            <Text style={styles.userName}>{user?.name || 'Student'}</Text>
           </View>
-        </View>
 
-        {/* Recent Activity */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <View style={styles.recentActivityContainer}>
-            <Text style={styles.noActivityText}>No recent activity</Text>
+          {/* Quick Actions */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.actionsGrid}>
+              {quickActions.map((action, index) => (
+                <TouchableOpacity 
+                  key={action.title}
+                  style={styles.actionCard} 
+                  onPress={action.onPress}
+                  activeOpacity={0.9}>
+                  <LinearGradient
+                    colors={action.gradient}
+                    style={styles.actionCardContent}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 1}}>
+                    <View style={styles.iconContainer}>
+                      <Icon
+                        name={action.icon}
+                        type="material-community"
+                        color="#fff"
+                        size={24}
+                      />
+                    </View>
+                    <Text style={styles.actionTitle}>{action.title}</Text>
+                    <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-        </View>
 
-        {/* Logout Button */}
-        <Button
-          title="Logout"
-          onPress={handleLogout}
-          type="outline"
-          containerStyle={styles.logoutButton}
-        />
-      </ScrollView>
-    </SafeAreaView>
+          {/* Recent Activity */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Recent Activity</Text>
+            <View style={styles.recentActivityCard}>
+              <Text style={styles.noActivityText}>No recent activity</Text>
+            </View>
+          </View>
+
+          {/* Logout Button */}
+          <Button
+            title="Logout"
+            onPress={handleLogout}
+            variant="secondary"
+            style={styles.logoutButton}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
+const {width} = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+  },
+  safeArea: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 16,
+    padding: 20,
   },
   welcomeSection: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   welcomeText: {
     fontSize: 16,
-    color: '#868e96',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 4,
   },
   userName: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
-    color: '#212529',
+    color: '#fff',
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    color: '#212529',
+    color: '#fff',
     marginBottom: 16,
   },
   actionsGrid: {
@@ -183,37 +200,52 @@ const styles = StyleSheet.create({
     width: '50%',
     padding: 8,
   },
+  actionCardContent: {
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
   iconContainer: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     marginBottom: 12,
   },
   actionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#212529',
+    color: '#fff',
     marginBottom: 4,
   },
   actionSubtitle: {
     fontSize: 14,
-    color: '#868e96',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
-  recentActivityContainer: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 16,
+  recentActivityCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 120,
   },
   noActivityText: {
-    color: '#868e96',
+    color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 16,
   },
   logoutButton: {
-    marginTop: 24,
+    marginTop: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
 });

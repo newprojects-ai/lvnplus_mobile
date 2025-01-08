@@ -1,200 +1,122 @@
-import React, {useState, useMemo} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  ScrollView,
   TouchableOpacity,
-  Pressable,
+  StyleSheet,
+  SafeAreaView,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import type {RouteProp} from '@react-navigation/native';
-import {TestStackParamList} from '../../navigation/types';
-import {TimingType, TIME_LIMITS} from '../../types/test';
-import {Icon} from '@rneui/themed';
-import Slider from '@react-native-community/slider';
-
-type NavigationProp = NativeStackNavigationProp<
-  TestStackParamList,
-  'TestConfiguration'
->;
-type ScreenRouteProp = RouteProp<TestStackParamList, 'TestConfiguration'>;
-
-const QUESTION_COUNTS = [5, 10, 15, 20, 25, 30];
+import { Icon } from '@rneui/themed';
+import { useNavigation } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 
 export const TestConfigurationScreen = () => {
-  const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<ScreenRouteProp>();
-  const {subject, testType, selectedTopics} = route.params;
+  const navigation = useNavigation();
+  const [numQuestions, setNumQuestions] = useState(5);
+  const [isTimedMode, setIsTimedMode] = useState(true);
 
-  // Configuration states
-  const [questionCount, setQuestionCount] = useState(10);
-  const [timingType, setTimingType] = useState<TimingType>('UNTIMED');
-  const [timeLimit, setTimeLimit] = useState(TIME_LIMITS[1]); // Default 10 minutes
+  const questionOptions = [5, 10, 15, 20, 25];
 
-  // Format time for display
-  const formatTime = (minutes: number) => {
-    if (minutes >= 60) {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      return `${hours}h ${mins}m`;
-    }
-    return `${minutes}m`;
-  };
-
-  // Calculate estimated completion time
-  const estimatedTime = useMemo(() => {
-    if (timingType === 'TIMED') {
-      return timeLimit;
-    }
-    // Estimate 1 minute per question for untimed
-    return questionCount;
-  }, [timingType, timeLimit, questionCount]);
-
-  const handleContinue = () => {
-    navigation.navigate('TestReview', {
-      subject,
-      testType,
-      selectedTopics,
-      numberOfQuestions: questionCount,
-      isTimed: timingType === 'TIMED',
-      timeLimit: timingType === 'TIMED' ? timeLimit : undefined,
+  const handleStartTest = () => {
+    navigation.navigate('TestQuestionScreen', {
+      numQuestions,
+      isTimedMode,
     });
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView style={styles.scrollView}>
-        <Text style={styles.subtitle}>Configure your test settings</Text>
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#6366F1', '#4338CA']}
+        style={styles.headerGradient}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" type="material" color="white" size={24} />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Test Configuration</Text>
+      </LinearGradient>
 
-        {/* Number of Questions Section */}
+      <View style={styles.content}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Number of Questions</Text>
-          <View style={styles.questionCountContainer}>
-            {QUESTION_COUNTS.map(count => (
+          <View style={styles.questionOptions}>
+            {questionOptions.map((count) => (
               <TouchableOpacity
                 key={count}
                 style={[
-                  styles.countButton,
-                  questionCount === count && styles.countButtonSelected,
+                  styles.questionOption,
+                  numQuestions === count && styles.selectedQuestionOption,
                 ]}
-                onPress={() => setQuestionCount(count)}>
+                activeOpacity={0.7}
+                onPress={() => setNumQuestions(count)}>
                 <Text
                   style={[
-                    styles.countButtonText,
-                    questionCount === count && styles.countButtonTextSelected,
+                    styles.questionOptionText,
+                    numQuestions === count && styles.selectedQuestionOptionText,
                   ]}>
                   {count}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
+          <Text style={styles.recommendationText}>
+            Recommended: 10-20 questions
+          </Text>
         </View>
 
-        {/* Timing Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Timing</Text>
-          <View style={styles.timingContainer}>
-            <TouchableOpacity
-              style={[
-                styles.timingOption,
-                timingType === 'UNTIMED' && styles.timingOptionSelected,
-              ]}
-              onPress={() => setTimingType('UNTIMED')}>
+          <Text style={styles.sectionTitle}>Test Mode</Text>
+          
+          <TouchableOpacity
+            style={[styles.modeCard, isTimedMode && styles.selectedModeCard]}
+            onPress={() => setIsTimedMode(true)}>
+            <View style={styles.modeIconContainer}>
               <Icon
-                name={
-                  timingType === 'UNTIMED'
-                    ? 'checkbox-marked-circle'
-                    : 'checkbox-blank-circle-outline'
-                }
-                type="material-community"
+                name="timer"
+                type="material"
+                color={isTimedMode ? '#6366F1' : '#9CA3AF'}
                 size={24}
-                color={timingType === 'UNTIMED' ? '#339af0' : '#868e96'}
               />
-              <View style={styles.timingTextContainer}>
-                <Text style={styles.timingTitle}>Untimed</Text>
-                <Text style={styles.timingDescription}>
-                  Take your time to solve each question
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.timingOption,
-                timingType === 'TIMED' && styles.timingOptionSelected,
-              ]}
-              onPress={() => setTimingType('TIMED')}>
-              <Icon
-                name={
-                  timingType === 'TIMED'
-                    ? 'checkbox-marked-circle'
-                    : 'checkbox-blank-circle-outline'
-                }
-                type="material-community"
-                size={24}
-                color={timingType === 'TIMED' ? '#339af0' : '#868e96'}
-              />
-              <View style={styles.timingTextContainer}>
-                <Text style={styles.timingTitle}>Timed</Text>
-                <Text style={styles.timingDescription}>
-                  Challenge yourself with a time limit
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Time Limit Slider */}
-          {timingType === 'TIMED' && (
-            <View style={styles.timeLimitContainer}>
-              <Text style={styles.timeLimitLabel}>Time Limit:</Text>
-              <Text style={styles.timeLimitValue}>{formatTime(timeLimit)}</Text>
-              <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={TIME_LIMITS.length - 1}
-                step={1}
-                value={TIME_LIMITS.indexOf(timeLimit)}
-                onValueChange={value => setTimeLimit(TIME_LIMITS[value])}
-                minimumTrackTintColor="#339af0"
-                maximumTrackTintColor="#e9ecef"
-                thumbTintColor="#339af0"
-              />
-              <View style={styles.sliderLabels}>
-                <Text style={styles.sliderLabel}>5m</Text>
-                <Text style={styles.sliderLabel}>1h</Text>
-              </View>
             </View>
-          )}
+            <View style={styles.modeContent}>
+              <Text style={[styles.modeTitle, isTimedMode && styles.selectedText]}>
+                Timed Mode
+              </Text>
+              <Text style={styles.modeDetail}>• 45 seconds per question</Text>
+              <Text style={styles.modeDetail}>• Progress tracking</Text>
+              <Text style={styles.modeDetail}>• Performance analytics</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.modeCard, !isTimedMode && styles.selectedModeCard]}
+            onPress={() => setIsTimedMode(false)}>
+            <View style={styles.modeIconContainer}>
+              <Icon
+                name="book"
+                type="material"
+                color={!isTimedMode ? '#6366F1' : '#9CA3AF'}
+                size={24}
+              />
+            </View>
+            <View style={styles.modeContent}>
+              <Text style={[styles.modeTitle, !isTimedMode && styles.selectedText]}>
+                Un-timed Mode
+              </Text>
+              <Text style={styles.modeDetail}>• No time pressure</Text>
+              <Text style={styles.modeDetail}>• Detailed explanations</Text>
+              <Text style={styles.modeDetail}>• Focus on learning</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
-        {/* Summary Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Summary</Text>
-          <View style={styles.summaryContainer}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Questions:</Text>
-              <Text style={styles.summaryValue}>{questionCount}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Estimated Time:</Text>
-              <Text style={styles.summaryValue}>{formatTime(estimatedTime)}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Topics:</Text>
-              <Text style={styles.summaryValue}>{selectedTopics.length}</Text>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <Pressable style={styles.continueButton} onPress={handleContinue}>
-          <Text style={styles.continueButtonText}>Review Test</Text>
-          <Icon name="arrow-right" type="material-community" color="#fff" />
-        </Pressable>
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={handleStartTest}>
+          <Text style={styles.startButtonText}>Start Test</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -203,149 +125,128 @@ export const TestConfigurationScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6',
   },
-  scrollView: {
-    flex: 1,
+  headerGradient: {
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
   },
-  subtitle: {
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backText: {
+    color: 'white',
+    marginLeft: 8,
     fontSize: 16,
-    color: '#868e96',
-    marginVertical: 16,
-    marginHorizontal: 16,
-    textAlign: 'center',
+  },
+  headerTitle: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 12,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
   },
   section: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#212529',
-    marginBottom: 16,
+    color: '#1F2937',
+    marginBottom: 12,
   },
-  questionCountContainer: {
+  questionOptions: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  countButton: {
-    paddingVertical: 8,
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    backgroundColor: '#fff',
-    minWidth: 60,
-    alignItems: 'center',
+    marginBottom: 12,
   },
-  countButtonSelected: {
-    backgroundColor: '#339af0',
-    borderColor: '#339af0',
-  },
-  countButtonText: {
-    fontSize: 16,
-    color: '#495057',
-  },
-  countButtonTextSelected: {
-    color: '#fff',
-  },
-  timingContainer: {
-    gap: 12,
-  },
-  timingOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    gap: 12,
-  },
-  timingOptionSelected: {
-    borderColor: '#339af0',
-    backgroundColor: '#f8f9fa',
-  },
-  timingTextContainer: {
-    flex: 1,
-  },
-  timingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#212529',
-    marginBottom: 4,
-  },
-  timingDescription: {
-    fontSize: 14,
-    color: '#868e96',
-  },
-  timeLimitContainer: {
-    marginTop: 16,
-  },
-  timeLimitLabel: {
-    fontSize: 14,
-    color: '#495057',
-    marginBottom: 4,
-  },
-  timeLimitValue: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#212529',
-    marginBottom: 8,
-  },
-  slider: {
-    width: '100%',
+  questionOption: {
+    minWidth: 56,
     height: 40,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
   },
-  sliderLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: -8,
+  selectedQuestionOption: {
+    backgroundColor: '#6366F1',
   },
-  sliderLabel: {
-    fontSize: 12,
-    color: '#868e96',
-  },
-  summaryContainer: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    padding: 16,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: '#495057',
-  },
-  summaryValue: {
-    fontSize: 14,
+  questionOptionText: {
+    fontSize: 16,
     fontWeight: '600',
-    color: '#212529',
+    color: '#6B7280',
   },
-  footer: {
+  selectedQuestionOptionText: {
+    color: 'white',
+  },
+  recommendationText: {
+    color: '#6B7280',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  modeCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
     padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
-    backgroundColor: '#fff',
-  },
-  continueButton: {
-    backgroundColor: '#339af0',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    marginBottom: 12,
     flexDirection: 'row',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  selectedModeCard: {
+    backgroundColor: '#F5F3FF',
+    borderColor: '#6366F1',
+    borderWidth: 2,
+  },
+  modeIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    marginRight: 16,
   },
-  continueButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  modeContent: {
+    flex: 1,
+  },
+  modeTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  selectedText: {
+    color: '#6366F1',
+  },
+  modeDetail: {
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  startButton: {
+    backgroundColor: '#6366F1',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 'auto',
+    marginBottom: 16,
+  },
+  startButtonText: {
+    color: 'white',
+    fontSize: 18,
     fontWeight: '600',
   },
 });
+
+export default TestConfigurationScreen;

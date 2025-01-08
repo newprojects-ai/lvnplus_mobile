@@ -7,40 +7,53 @@ export type SubjectType = 'MATHS' | 'SCIENCE' | 'ENGLISH';
 export type TestStackParamList = {
   SubjectSelection: undefined;
   TestTypeSelection: {
-    subject: SubjectType;
+    subjectId: string;
   };
   TopicSelection: {
-    subject: SubjectType;
-    testType: TestType;
+    subjectId: string;
+    testType: 'TOPIC' | 'MIXED' | 'MENTAL';
   };
   TestConfiguration: {
-    subject: SubjectType;
-    testType: TestType;
-    selectedTopics: string[];
+    subjectId: string;
+    testType: 'TOPIC' | 'MIXED' | 'MENTAL';
+    selectedTopics?: string[];
   };
-  TestReview: {
-    subject: SubjectType;
-    testType: TestType;
-    selectedTopics: string[];
-    numberOfQuestions: number;
-    isTimed: boolean;
-  };
-  TestExecution: {
-    testId: string;
-    totalQuestions: number;
+  TestQuestionScreen: {
+    numQuestions: number;
+    isTimed?: boolean;
     timeLimit?: number;
-    selectedTopics: string[];
   };
   TestResults: {
-    testId: string;
-    score: number;
-    accuracy: number;
-    timeSpent: number;
-    topicPerformance: {
-      topicId: string;
-      correct: number;
-      total: number;
-    }[];
+    results: {
+      totalQuestions: number;
+      questionsAttempted: number;
+      unansweredQuestions: number;
+      flaggedQuestions: number;
+      correctAnswers: number;
+      incorrectAnswers: number;
+      timeSpent: string;
+      topics: Array<{
+        name: string;
+        correct: number;
+        total: number;
+      }>;
+    };
+  };
+  TestReview: {
+    results: {
+      totalQuestions: number;
+      questionsAttempted: number;
+      unansweredQuestions: number;
+      flaggedQuestions: number;
+      correctAnswers: number;
+      incorrectAnswers: number;
+      timeSpent: string;
+      topics: Array<{
+        name: string;
+        correct: number;
+        total: number;
+      }>;
+    };
   };
 };
 
